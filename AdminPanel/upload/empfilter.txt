@@ -1,0 +1,58 @@
+
+Imports System.Data.SqlClient
+Imports System.Data
+
+Public Class EmployeeFilter
+    Dim ds As New DataSet
+    Dim dv As DataView
+    Dim maxrow As Integer
+    Dim flag As Boolean = False
+    Private Sub EmployeeFilter_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+
+        Dim cmd As New SqlCommand("select e.*,d.deptname from tblemp as e,tbldept as d where e.deptno=d.deptno", fun_con)
+        Dim da As New SqlDataAdapter(cmd)
+        da.Fill(ds, "emp")
+        dv = New DataView(ds.Tables("emp"))
+        flag = True
+        fillgrid()
+    End Sub
+
+    Private Sub TextBox1_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox1.TextChanged
+        If flag And TextBox1.Text <> "" Then
+            dv.RowFilter = "EmpName like'%" & TextBox1.Text & "%'"
+            If RadioButton1.Checked Then
+                dv.Sort = "DOB"
+            Else
+                dv.Sort = "DOB desc"
+            End If
+        Else
+            DataGridView1.DataSource = Nothing
+
+        End If
+    End Sub
+
+    Private Sub RadioButton1_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton1.CheckedChanged
+        dv.Sort = "DOB"
+        DataGridView1.DataSource = dv
+    End Sub
+
+    Private Sub RadioButton2_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles RadioButton2.CheckedChanged
+        dv.Sort = "DOB desc"
+        DataGridView1.DataSource = dv
+    End Sub
+
+    Sub fillgrid()
+        Dim cmd As New SqlCommand("select e.*, d.deptname from tblemp as e,tbldept as d where e.deptno=d.deptno", fun_con)
+        Dim da As New SqlDataAdapter(cmd)
+        If ds.Tables.Contains("emp") Then
+            ds.Tables("emp").Clear()
+        End If
+        da.Fill(ds, "emp")
+        DataGridView1.DataSource = ds.Tables("emp")
+        maxrow = DataGridView1.Rows.Count()
+    End Sub
+
+    Private Sub DataGridView1_CellContentClick(ByVal sender As System.Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
+        fillgrid()
+    End Sub
+End Class
